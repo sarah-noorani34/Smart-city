@@ -1,0 +1,105 @@
+version: "3.9"
+
+# Smart City Traffic & Emergency Management System
+# Docker Compose — PostgreSQL 16 + PostGIS + MongoDB 7 + pgAdmin + Mongo Express
+#
+# Usage:
+#   docker compose up -d          → start everything
+#   docker compose down           → stop everything
+#   docker compose down -v        → stop + wipe all data (fresh start)
+#   docker compose logs -f db     → tail PostgreSQL logs
+#   docker compose logs -f mongo  → tail MongoDB logs
+
+services:
+
+  # ── PostgreSQL 16 with PostGIS ───────────────────────────────
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: smartcity_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       smart_city_db
+      POSTGRES_USER:     smartcity
+      POSTGRES_PASSWORD: smartcity123
+    ports:
+      - "5432:5432"                       # accessible on localhost:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data          # persistent data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d  # auto-run on first start
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smartcity -d smart_city_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - smartcity_net
+
+  # ── MongoDB 7 ────────────────────────────────────────────────
+  mongo:
+    image: mongo:7.0
+    container_name: smartcity_mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: smart_city_db
+    ports:
+      - "27017:27017"                     # accessible on localhost:27017
+    volumes:
+      - mongo_data:/data/db               # persistent data
+      - ./docker/mongo/init:/docker-entrypoint-initdb.d   # auto-run on first start
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - smartcity_net
+
+  # ── pgAdmin 4 — PostgreSQL visual browser ───────────────────
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: smartcity_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL:    admin@smartcity.local
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: "False"        # single-user mode
+    ports:
+      - "5050:80"                         # open http://localhost:5050
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./docker/pgadmin/servers.json:/pgadmin4/servers.json  # pre-configured connection
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - smartcity_net
+
+  # ── Mongo Express — MongoDB visual browser ───────────────────
+  mongo_express:
+    image: mongo-express:latest
+    container_name: smartcity_mongo_express
+    restart: unless-stopped
+    environment:
+      ME_CONFIG_MONGODB_SERVER:           mongo
+      ME_CONFIG_MONGODB_PORT:             "27017"
+      ME_CONFIG_BASICAUTH_USERNAME:       admin
+      ME_CONFIG_BASICAUTH_PASSWORD:       admin123
+      ME_CONFIG_MONGODB_ENABLE_ADMIN:     "true"
+    ports:
+      - "8081:8081"                       # open http://localhost:8081
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - smartcity_net
+
+# ── Named volumes (data persists between restarts) ───────────
+volumes:
+  postgres_data:
+  mongo_data:
+  pgadmin_data:
+
+# ── Internal network ─────────────────────────────────────────
+networks:
+  smartcity_net:
+    driver: bridge

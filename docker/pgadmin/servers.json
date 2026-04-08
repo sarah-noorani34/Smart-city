@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Smart City DB",
+      "Group": "Docker",
+      "Host": "db",
+      "Port": 5432,
+      "MaintenanceDB": "smart_city_db",
+      "Username": "smartcity",
+      "SSLMode": "prefer",
+      "PassFile": "/pgpass"
+    }
+  }
+}
