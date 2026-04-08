@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ============================================================
+  8. XML DESIGN
+     Smart City Traffic & Emergency Management System
+     Purpose: Emergency Dispatch Configuration Record
+              Stores signal override plans, unit assignments,
+              and affected road metadata for an incident.
+  ============================================================
+-->
+
+<!-- XSD Schema (inline for reference) -->
+<!--
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://smartcity.gov/dispatch/v1"
+           xmlns="http://smartcity.gov/dispatch/v1"
+           elementFormDefault="qualified">
+
+  <xs:element name="DispatchRecord">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="IncidentInfo"    type="IncidentInfoType"/>
+        <xs:element name="SignalOverrides" type="SignalOverridesType"/>
+        <xs:element name="UnitAssignments" type="UnitAssignmentsType"/>
+        <xs:element name="AffectedRoads"   type="AffectedRoadsType"/>
+        <xs:element name="Timeline"        type="TimelineType"/>
+      </xs:sequence>
+      <xs:attribute name="dispatch_id"    type="xs:string" use="required"/>
+      <xs:attribute name="generated_at"   type="xs:dateTime" use="required"/>
+      <xs:attribute name="schema_version" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="IncidentInfoType">
+    <xs:all>
+      <xs:element name="IncidentID"   type="xs:integer"/>
+      <xs:element name="Category"     type="xs:string"/>
+      <xs:element name="Severity"     type="xs:string"/>
+      <xs:element name="Location"     type="LocationType"/>
+      <xs:element name="Description"  type="xs:string"/>
+    </xs:all>
+  </xs:complexType>
+
+  <xs:complexType name="LocationType">
+    <xs:all>
+      <xs:element name="Latitude"   type="xs:decimal"/>
+      <xs:element name="Longitude"  type="xs:decimal"/>
+      <xs:element name="ZoneName"   type="xs:string"/>
+      <xs:element name="Address"    type="xs:string" minOccurs="0"/>
+    </xs:all>
+  </xs:complexType>
+
+  <xs:complexType name="SignalOverridesType">
+    <xs:sequence>
+      <xs:element name="Signal" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:all>
+            <xs:element name="SignalID"         type="xs:integer"/>
+            <xs:element name="IntersectionName" type="xs:string"/>
+            <xs:element name="OverridePhase"    type="xs:string"/>
+            <xs:element name="DurationSeconds"  type="xs:integer"/>
+            <xs:element name="Reason"           type="xs:string"/>
+          </xs:all>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="UnitAssignmentsType">
+    <xs:sequence>
+      <xs:element name="Unit" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:all>
+            <xs:element name="UnitID"          type="xs:string"/>
+            <xs:element name="UnitType"        type="xs:string"/>
+            <xs:element name="AgencyName"      type="xs:string"/>
+            <xs:element name="DispatchTime"    type="xs:dateTime"/>
+            <xs:element name="EstimatedETA"    type="xs:integer"/>
+            <xs:element name="ResponderName"   type="xs:string" minOccurs="0"/>
+          </xs:all>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+</xs:schema>
+-->
+
+<!-- ============================================================
+     SAMPLE XML DOCUMENT — Dispatch Record for Incident #4821
+     ============================================================ -->
+<DispatchRecord
+    xmlns="http://smartcity.gov/dispatch/v1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://smartcity.gov/dispatch/v1 dispatch_record.xsd"
+    dispatch_id="DR-20250408-0094"
+    generated_at="2025-04-08T14:23:10Z"
+    schema_version="1.0">
+
+  <!-- ── Incident Core Info ── -->
+  <IncidentInfo>
+    <IncidentID>4821</IncidentID>
+    <Category>ACCIDENT</Category>
+    <Severity>HIGH</Severity>
+    <Status>DISPATCHED</Status>
+    <ReportedBy>
+      <PersonID>1042</PersonID>
+      <Name>Amir Raza</Name>
+      <Contact>+92-300-1234567</Contact>
+    </ReportedBy>
+    <Location>
+      <Latitude>24.8732</Latitude>
+      <Longitude>67.0512</Longitude>
+      <ZoneName>CENTRAL_HIGHWAY</ZoneName>
+      <Address>Main Sharea Faisal, Near Drigh Road Crossing, Karachi</Address>
+    </Location>
+    <Description>
+      Multi-vehicle collision involving 3 private cars. One vehicle overturned.
+      Two casualties reported. Road partially blocked in northbound direction.
+    </Description>
+    <Casualties>2</Casualties>
+    <PropertyDamageUSD>18500.00</PropertyDamageUSD>
+  </IncidentInfo>
+
+  <!-- ── Traffic Signal Overrides (Emergency Corridor) ── -->
+  <SignalOverrides total_signals="3">
+    <Signal>
+      <SignalID>211</SignalID>
+      <IntersectionName>Drigh Road × Sharea Faisal</IntersectionName>
+      <OverridePhase>RED</OverridePhase>
+      <DurationSeconds>600</DurationSeconds>
+      <Reason>Emergency corridor — block conflicting traffic</Reason>
+    </Signal>
+    <Signal>
+      <SignalID>212</SignalID>
+      <IntersectionName>Sharea Faisal × Korangi Road</IntersectionName>
+      <OverridePhase>GREEN</OverridePhase>
+      <DurationSeconds>600</DurationSeconds>
+      <Reason>Emergency vehicle inbound route clearance</Reason>
+    </Signal>
+    <Signal>
+      <SignalID>215</SignalID>
+      <IntersectionName>Hospital Access Road × Sharea Faisal</IntersectionName>
+      <OverridePhase>GREEN</OverridePhase>
+      <DurationSeconds>900</DurationSeconds>
+      <Reason>Ambulance egress to Jinnah Hospital</Reason>
+    </Signal>
+  </SignalOverrides>
+
+  <!-- ── Dispatched Units ── -->
+  <UnitAssignments total_units="3">
+    <Unit>
+      <UnitID>AMB-021</UnitID>
+      <UnitType>AMBULANCE</UnitType>
+      <AgencyName>Edhi Foundation</AgencyName>
+      <LicensePlate>KHI-AMB-021</LicensePlate>
+      <DispatchTime>2025-04-08T14:23:12Z</DispatchTime>
+      <EstimatedETA_min>4</EstimatedETA_min>
+      <DistanceToIncident_m>820</DistanceToIncident_m>
+      <ResponderName>Dr. Sana Mirza</ResponderName>
+      <ResponderBadge>ER-4422</ResponderBadge>
+    </Unit>
+    <Unit>
+      <UnitID>AMB-034</UnitID>
+      <UnitType>AMBULANCE</UnitType>
+      <AgencyName>Aman Foundation</AgencyName>
+      <LicensePlate>KHI-AMB-034</LicensePlate>
+      <DispatchTime>2025-04-08T14:23:15Z</DispatchTime>
+      <EstimatedETA_min>6</EstimatedETA_min>
+      <DistanceToIncident_m>1340</DistanceToIncident_m>
+      <ResponderName>Technician Bilal Yusuf</ResponderName>
+      <ResponderBadge>EM-8831</ResponderBadge>
+    </Unit>
+    <Unit>
+      <UnitID>POL-117</UnitID>
+      <UnitType>POLICE</UnitType>
+      <AgencyName>Karachi Traffic Police</AgencyName>
+      <LicensePlate>KHI-POL-117</LicensePlate>
+      <DispatchTime>2025-04-08T14:23:10Z</DispatchTime>
+      <EstimatedETA_min>3</EstimatedETA_min>
+      <DistanceToIncident_m>640</DistanceToIncident_m>
+      <OfficerName>Inspector Fahad Khan</OfficerName>
+      <OfficerBadge>KTP-0177</OfficerBadge>
+    </Unit>
+  </UnitAssignments>
+
+  <!-- ── Affected Roads ── -->
+  <AffectedRoads>
+    <Road>
+      <RoadID>301</RoadID>
+      <RoadName>Main Sharea Faisal (Northbound)</RoadName>
+      <RoadType>ARTERIAL</RoadType>
+      <IsClosed>true</IsClosed>
+      <ClosureLength_km>0.8</ClosureLength_km>
+      <DiversionRoute>Via Korangi Road → Drigh Road</DiversionRoute>
+    </Road>
+    <Road>
+      <RoadID>302</RoadID>
+      <RoadName>Main Sharea Faisal (Southbound)</RoadName>
+      <RoadType>ARTERIAL</RoadType>
+      <IsClosed>false</IsClosed>
+      <TrafficReduction_pct>40</TrafficReduction_pct>
+    </Road>
+  </AffectedRoads>
+
+  <!-- ── Event Timeline ── -->
+  <Timeline>
+    <Event seq="1" timestamp="2025-04-08T14:21:55Z" type="INCIDENT_REPORTED"
+           actor="Citizen_Amir_Raza"/>
+    <Event seq="2" timestamp="2025-04-08T14:22:10Z" type="SIGNAL_OVERRIDE_APPLIED"
+           actor="AUTO_TRIGGER"/>
+    <Event seq="3" timestamp="2025-04-08T14:23:10Z" type="UNITS_DISPATCHED"
+           actor="OPS-007_Raheem_Khan"/>
+    <Event seq="4" timestamp="2025-04-08T14:23:50Z" type="PUBLIC_ALERT_ISSUED"
+           actor="AUTO_SYSTEM" channels="SMS,PUSH,DIGITAL_SIGNBOARD"/>
+  </Timeline>
+
+</DispatchRecord>
+
+
+<!-- ============================================================
+     XPATH QUERIES
+     ============================================================
+
+-- XPath 1: Get all unit IDs dispatched to this incident
+/DispatchRecord/UnitAssignments/Unit/UnitID/text()
+-- Returns: AMB-021, AMB-034, POL-117
+
+-- XPath 2: Get signal overrides where phase is GREEN
+/DispatchRecord/SignalOverrides/Signal[OverridePhase='GREEN']/SignalID/text()
+-- Returns: 212, 215
+
+-- XPath 3: Get all closed roads
+/DispatchRecord/AffectedRoads/Road[IsClosed='true']/RoadName/text()
+-- Returns: Main Sharea Faisal (Northbound)
+
+-- XPath 4: Get ETA for units under 5 minutes
+/DispatchRecord/UnitAssignments/Unit[EstimatedETA_min < 5]/UnitID/text()
+-- Returns: AMB-021, POL-117
+
+-- XPath 5: Count total dispatched units
+count(/DispatchRecord/UnitAssignments/Unit)
+-- Returns: 3
+
+============================================================
+     XQUERY QUERIES (for XQuery-capable engine / BaseX)
+     ============================================================
+
+-- XQuery 1: List all units with ETA and agency, sorted by ETA
+for $u in /DispatchRecord/UnitAssignments/Unit
+order by $u/EstimatedETA_min ascending
+return
+  <dispatch>
+    <unit>{ string($u/UnitID) }</unit>
+    <type>{ string($u/UnitType) }</type>
+    <agency>{ string($u/AgencyName) }</agency>
+    <eta_min>{ string($u/EstimatedETA_min) }</eta_min>
+  </dispatch>
+
+-- XQuery 2: Get signal overrides that are RED with duration > 300s
+for $s in /DispatchRecord/SignalOverrides/Signal
+where $s/OverridePhase = 'RED' and xs:integer($s/DurationSeconds) > 300
+return
+  <override signal_id="{ $s/SignalID }">
+    <intersection>{ string($s/IntersectionName) }</intersection>
+    <reason>{ string($s/Reason) }</reason>
+  </override>
+
+-- XQuery 3: Cross-document join — fetch incidents with XML dispatch records
+-- (BaseX collection query)
+for $doc in collection('dispatch_records')
+let $inc_id := $doc/DispatchRecord/IncidentInfo/IncidentID
+where xs:integer($inc_id) > 4800
+  and $doc/DispatchRecord/IncidentInfo/Severity = 'HIGH'
+return
+  <summary incident_id="{ $inc_id }"
+           dispatch_id="{ $doc/DispatchRecord/@dispatch_id }">
+    <zone>{ string($doc/DispatchRecord/IncidentInfo/Location/ZoneName) }</zone>
+    <units_dispatched>
+      { count($doc/DispatchRecord/UnitAssignments/Unit) }
+    </units_dispatched>
+  </summary>
+
+============================================================
+     POSTGRESQL XML STORAGE (pg/xml functions)
+     ============================================================
+
+-- Store XML in PostgreSQL
+CREATE TABLE dispatch_xml_store (
+    doc_id          SERIAL PRIMARY KEY,
+    incident_id     INT REFERENCES incident(incident_id),
+    generated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    xml_document    XML NOT NULL
+);
+
+-- Insert sample
+INSERT INTO dispatch_xml_store (incident_id, xml_document)
+VALUES (4821, XMLPARSE(DOCUMENT '<?xml version="1.0"?> ... '));
+
+-- XPath query inside PostgreSQL
+SELECT
+    incident_id,
+    (xpath('//UnitID/text()', xml_document))[1]::TEXT AS first_unit,
+    (xpath('count(//Unit)', xml_document))[1]::TEXT::INT AS unit_count
+FROM dispatch_xml_store
+WHERE incident_id = 4821;
+
+============================================================ -->
